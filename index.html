@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mercado Libre VZLA - Calculadora de Envíos y Ventas</title>
+  <meta name="theme-color" content="#FFE600">
+  <meta name="description" content="Gestión de ventas, métricas y cálculo de costos por envíos gratis de Mercado Libre Venezuela con tasa BCV en tiempo real.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Embedded Favicon SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FFE600'/><path d='M22 38 L50 22 L78 38 L78 68 L50 84 L22 68 Z' fill='none' stroke='%232D3277' stroke-width='7' stroke-linejoin='round'/><path d='M22 38 L50 53 L78 38' fill='none' stroke='%232D3277' stroke-width='7' stroke-linejoin='round'/><path d='M50 53 L50 84' fill='none' stroke='%232D3277' stroke-width='7'/><circle cx='50' cy='38' r='5' fill='%232D3277'/></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FFE600'/><path d='M22 38 L50 22 L78 38 L78 68 L50 84 L22 68 Z' fill='none' stroke='%232D3277' stroke-width='7' stroke-linejoin='round'/><path d='M22 38 L50 53 L78 38' fill='none' stroke='%232D3277' stroke-width='7' stroke-linejoin='round'/><path d='M50 53 L50 84' fill='none' stroke='%232D3277' stroke-width='7'/><circle cx='50' cy='38' r='5' fill='%232D3277'/></svg>">
+
+  <!-- Tailwind CSS & FontAwesome Icons & Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            ml: {
+              yellow: '#FFE600',
+              blue: '#2D3277',
+              darkBlue: '#1B1E4A',
+              accent: '#3483FA',
+              grayBg: '#F5F5F5',
+              green: '#00A650',
+              red: '#F23D4F'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbar and animations */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-ml-yellow selection:text-ml-blue">
+
+  <!-- Header Bar -->
+  <header class="bg-ml-yellow text-ml-blue sticky top-0 z-30 shadow-md border-b border-yellow-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      <!-- Logo & Title -->
+      <div class="flex items-center space-x-3">
+        <div class="bg-ml-blue text-ml-yellow p-2 rounded-xl shadow-sm flex items-center justify-center w-10 h-10 font-bold text-xl">
+          <i class="fa-solid font-black fa-box-open"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg sm:text-xl leading-tight tracking-tight text-ml-blue">
+            MercadoLibre <span class="text-xs bg-ml-blue text-ml-yellow px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">VE</span>
+          </h1>
+          <p class="text-[11px] font-semibold text-ml-blue/80 hidden sm:block">Gestión de Envíos Gratis & Ventas Mensuales</p>
+        </div>
+      </div>
+
+      <!-- Actions & BCV Indicator -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- Official Rates Table Button -->
+        <button onclick="openRatesModal()" class="bg-white/90 hover:bg-white text-ml-blue font-extrabold text-xs px-3 py-1.5 rounded-lg border border-yellow-400 shadow-sm transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-table-list text-ml-accent"></i>
+          <span class="hidden sm:inline">Tabla Oficial ML</span>
+        </button>
+
+        <!-- Month Selector -->
+        <div class="relative">
+          <select id="monthSelector" onchange="switchMonth(this.value)" class="bg-white/90 text-ml-blue font-bold text-xs sm:text-sm rounded-lg px-3 py-1.5 border border-yellow-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-ml-blue cursor-pointer">
+            <!-- Dynamic Month Options -->
+          </select>
+        </div>
+
+        <!-- PWA Install Button -->
+        <button id="pwaInstallBtn" onclick="promptPwaInstall()" class="hidden bg-ml-blue text-white hover:bg-ml-darkBlue px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 shadow-sm">
+          <i class="fa-solid fa-download"></i>
+          <span class="hidden md:inline">Instalar App</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Exchange Rate & Quick Info Banner -->
+  <div class="bg-ml-darkBlue text-white py-2 px-4 shadow-inner text-xs sm:text-sm">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-extrabold bg-green-500/20 text-green-300 border border-green-500/30">
+          <i class="fa-solid fa-building-columns mr-1"></i> BCV
+        </span>
+        <span class="font-medium text-slate-300">Tasa Oficial:</span>
+        <span id="bcvRateDisplay" class="font-black text-ml-yellow text-sm sm:text-base">Cargando...</span>
+        <span class="text-slate-400 text-[11px] hidden md:inline" id="bcvLastUpdate">--</span>
+      </div>
+
+      <div class="flex items-center space-x-2 ml-auto">
+        <button onclick="fetchBcvRate(true)" title="Actualizar BCV" class="text-slate-300 hover:text-ml-yellow p-1 rounded transition">
+          <i id="bcvRefreshIcon" class="fa-solid fa-rotate"></i>
+        </button>
+        <button onclick="openManualRateModal()" title="Ajustar Tasa Manual" class="bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded text-xs transition">
+          <i class="fa-solid fa-pen-to-square mr-1"></i>Manual
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Tier Progress & Discount Tracker -->
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 text-slate-100 opacity-60 pointer-events-none">
+        <i class="fa-solid fa-truck-fast text-9xl"></i>
+      </div>
+      
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs uppercase tracking-wider font-extrabold text-ml-accent bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
+              <i class="fa-solid fa-layer-group mr-1"></i>Escala de Descuento
+            </span>
+            <span id="tierBadge" class="text-xs font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">
+              Evaluando...
+            </span>
+            <button onclick="openRatesModal()" class="text-xs font-bold text-ml-accent hover:underline flex items-center ml-1">
+              <i class="fa-solid fa-file-invoice-dollar mr-1"></i>Ver tarifario oficial
+            </button>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-2">
+            Progreso del Mes: <span id="tierShipmentCount" class="text-ml-blue">0</span> envíos gratis
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">
+            Mercado Libre liquida a fin de mes aplicando el descuento correspondiente a <strong>todos</strong> los envíos del mes según el volumen alcanzado.
+          </p>
+        </div>
+
+        <div class="text-left md:text-right bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100 min-w-[200px]">
+          <div class="text-xs text-slate-500 font-semibold">Descuento Aplicado Activo</div>
+          <div id="tierDiscountText" class="text-2xl font-black text-green-600">0% OFF</div>
+          <div id="tierNextGoal" class="text-[11px] text-slate-500 mt-0.5">Faltan 3 envíos para tramo base</div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-xs font-bold text-slate-600">
+          <span>0 (Sin tramo)</span>
+          <span>50 (Regular 3-50)</span>
+          <span>150 (20% OFF 51-150)</span>
+          <span>>150 (50% OFF >150)</span>
+        </div>
+        <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-0.5 border border-slate-200 flex">
+          <div id="progressBarFill" class="bg-gradient-to-r from-ml-blue via-ml-accent to-green-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Metrics Summary Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Card 1: Ventas Totales -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Ventas Brutas Mes</span>
+            <div class="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center font-bold">
+              <i class="fa-solid fa-cash-register"></i>
+            </div>
+          </div>
+          <div id="kpiTotalSalesUsd" class="text-2xl sm:text-3xl font-black text-slate-800 mt-2">$0.00</div>
+          <div id="kpiTotalSalesVes" class="text-xs font-bold text-green-600 mt-1">0,00 VES</div>
+        </div>
+        <div class="text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100 flex justify-between">
+          <span>Total Facturado:</span>
+          <span id="kpiSalesCount" class="font-bold text-slate-600">0 ventas</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Costo Envíos Gratis ML -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Costo Envíos (ML)</span>
+            <div class="w-8 h-8 rounded-lg bg-red-50 text-ml-red flex items-center justify-center font-bold">
+              <i class="fa-solid fa-truck-ramp-box"></i>
+            </div>
+          </div>
+          <div id="kpiTotalShippingUsd" class="text-2xl sm:text-3xl font-black text-ml-red mt-2">$0.00</div>
+          <div id="kpiTotalShippingVes" class="text-xs font-bold text-red-500 mt-1">0,00 VES</div>
+        </div>
+        <div class="text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100 flex justify-between">
+          <span>Cargo estimado en factura:</span>
+          <span id="kpiShipmentCostAvg" class="font-bold text-slate-600">$0.00 / envío</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Ingreso Neto -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Ingreso Neto (Ventas - Envíos)</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-50 text-ml-blue flex items-center justify-center font-bold">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+          </div>
+          <div id="kpiNetIncomeUsd" class="text-2xl sm:text-3xl font-black text-ml-blue mt-2">$0.00</div>
+          <div id="kpiNetIncomeVes" class="text-xs font-bold text-blue-600 mt-1">0,00 VES</div>
+        </div>
+        <div class="text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100 flex justify-between">
+          <span>Margen sobre Ventas:</span>
+          <span id="kpiMarginPercent" class="font-bold text-slate-600">0.0%</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Impacto de Envíos % -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Ratio Costo Envíos</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <i class="fa-solid fa-percent"></i>
+            </div>
+          </div>
+          <div id="kpiShippingRatio" class="text-2xl sm:text-3xl font-black text-slate-800 mt-2">0.0%</div>
+          <div class="text-xs text-slate-500 mt-1">de la facturación se va en envíos</div>
+        </div>
+        <div class="text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100 flex justify-between">
+          <span>Ahorro por tramo actual:</span>
+          <span id="kpiTotalSavedUsd" class="font-bold text-green-600">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two Column Grid for Desktop -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Registration Form & Quick Tools (5 Cols) -->
+      <div class="lg:col-span-5 space-y-6">
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <h3 class="font-extrabold text-slate-800 text-base flex items-center">
+              <i class="fa-solid fa-circle-plus text-ml-accent mr-2"></i>Registrar Venta / Envío
+            </h3>
+            <span class="text-[11px] bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded">Diario</span>
+          </div>
+
+          <form id="saleForm" onsubmit="handleSaleSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Fecha de la Venta</label>
+              <input type="date" id="inputDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-ml-accent focus:bg-white focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Descripción del Producto / Orden</label>
+              <input type="text" id="inputTitle" placeholder="Ej. Corneta Bluetooth Jbl / Orden #1204" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-ml-accent focus:bg-white focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Rango de Peso del Producto</label>
+              <select id="inputWeight" onchange="updateMinPriceHint()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-ml-accent focus:bg-white focus:outline-none">
+                <!-- Weight options populated dynamically -->
+              </select>
+              <div id="minPriceHint" class="text-[11px] text-amber-600 font-semibold mt-1 flex items-center">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i>Precio mín. en ML para envío gratis: <span id="minPriceValue" class="ml-1 font-bold">$3.00</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Precio Venta ($ USD)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-slate-400 font-bold text-sm">$</span>
+                  <input type="number" step="0.01" min="0" id="inputPrice" placeholder="0.00" required class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-7 pr-3 py-2 text-sm font-bold focus:ring-2 focus:ring-ml-accent focus:bg-white focus:outline-none">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Cantidad de Envíos</label>
+                <input type="number" min="1" id="inputQty" value="1" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-center focus:ring-2 focus:ring-ml-accent focus:bg-white focus:outline-none">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-ml-blue hover:bg-ml-darkBlue text-ml-yellow font-black py-3 px-4 rounded-xl transition shadow-md flex items-center justify-center space-x-2 text-sm">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Guardar Registro</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Free Shipping Price Checker Tool -->
+        <div class="bg-gradient-to-br from-blue-900 to-ml-blue text-white rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center space-x-2 mb-3">
+            <i class="fa-solid fa-calculator text-ml-yellow text-lg"></i>
+            <h3 class="font-extrabold text-sm uppercase tracking-wide text-ml-yellow">Verificador de Precio Mínimo ML</h3>
+          </div>
+          <p class="text-xs text-slate-200 mb-3">
+            Comprueba si el precio publicado alcanza el umbral mínimo exigido por Mercado Libre para ofrecer Envío Gratis en Venezuela.
+          </p>
+
+          <div class="space-y-3 bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/10">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-1">Selecciona Peso</label>
+              <select id="checkerWeight" onchange="runEligibilityCheck()" class="w-full bg-slate-800 text-white border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none">
+                <!-- Weight options -->
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-1">Precio a Publicar ($ USD)</label>
+              <input type="number" step="0.01" id="checkerPrice" placeholder="Ej. 15.00" oninput="runEligibilityCheck()" class="w-full bg-slate-800 text-white border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none">
+            </div>
+
+            <div id="checkerResult" class="hidden p-2.5 rounded-lg text-xs font-bold">
+              <!-- Result filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Data & Storage Manager -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <h3 class="font-extrabold text-slate-800 text-sm mb-3 flex items-center justify-between">
+            <span><i class="fa-solid fa-database text-slate-500 mr-2"></i>Gestión de Almacenamiento</span>
+            <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-mono" id="storageUsageBadge">0 KB</span>
+          </h3>
+          <p class="text-xs text-slate-500 mb-4">
+            Para evitar saturar la app, puedes borrar meses anteriores individualmente o exportar una copia de respaldo.
+          </p>
+
+          <div class="space-y-2">
+            <button onclick="openDeleteMonthModal()" class="w-full bg-red-50 hover:bg-red-100 text-ml-red font-bold py-2 px-3 rounded-xl text-xs transition border border-red-200 flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-trash-can"></i>
+              <span>Eliminar un Mes del Historial</span>
+            </button>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="exportDataCsv()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-2 rounded-xl text-xs transition flex items-center justify-center space-x-1">
+                <i class="fa-solid fa-file-csv text-green-600"></i>
+                <span>Exportar CSV</span>
+              </button>
+              <button onclick="exportDataJson()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-2 rounded-xl text-xs transition flex items-center justify-center space-x-1">
+                <i class="fa-solid fa-file-code text-blue-600"></i>
+                <span>Respaldo JSON</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Interactive Sales Table & Analytics (7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Table Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          
+          <!-- Table Filter Header -->
+          <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+            <div>
+              <h3 class="font-extrabold text-slate-800 text-base">
+                Registros de <span id="tableMonthTitle" class="text-ml-blue capitalize">Este Mes</span>
+              </h3>
+              <p class="text-xs text-slate-500">Desglose de cada venta y costo unitario de envío asignado</p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative w-full sm:w-auto min-w-[200px]">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+              <input type="text" id="searchTable" oninput="renderTable()" placeholder="Buscar producto..." class="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs font-medium focus:ring-2 focus:ring-ml-accent focus:outline-none">
+            </div>
+          </div>
+
+          <!-- Table Wrapper -->
+          <div class="overflow-x-auto max-h-[480px]">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-100/80 sticky top-0 z-10 text-[11px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Fecha / Detalle</th>
+                  <th class="py-3 px-3">Rango Peso</th>
+                  <th class="py-3 px-3 text-right">Venta ($)</th>
+                  <th class="py-3 px-3 text-right">Costo Envío</th>
+                  <th class="py-3 px-3 text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="salesTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Table Footer -->
+          <div class="p-4 bg-slate-50 border-t border-slate-100 text-xs flex justify-between items-center text-slate-600 font-semibold">
+            <span id="tableRowsCount">0 registros</span>
+            <span id="tableSubtotalCost" class="font-bold text-ml-blue">$0.00 costo envíos</span>
+          </div>
+        </div>
+
+        <!-- Charts Card -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-extrabold text-slate-800 text-sm">
+              <i class="fa-solid fa-chart-pie text-ml-accent mr-2"></i>Distribución de Peso y Costos
+            </h3>
+            <span class="text-[11px] text-slate-400">Resumen visual</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="h-48 relative flex items-center justify-center">
+              <canvas id="weightChart"></canvas>
+            </div>
+            <div class="h-48 relative flex items-center justify-center">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-6 mt-12 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+      <p class="font-semibold text-slate-300">Mercado Libre Venezuela - Calculadora de Envíos Gratis</p>
+      <p class="text-[11px] text-slate-500">
+        Actualización automática de tasa oficial BCV. Los cálculos corresponden a la tabla oficial vigente de Mercado Libre Venezuela.
+      </p>
+    </div>
+  </footer>
+
+  <!-- MODAL: Official Mercado Libre Rates Table -->
+  <div id="officialRatesModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <!-- Modal Header -->
+      <div class="bg-slate-50 p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-800 flex items-center">
+            <i class="fa-solid fa-table-cells text-ml-accent mr-2"></i>Costos por ofrecer envíos gratis (Oficial ML)
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">
+            El costo mensual se cancela a tasa BCV y será cargado en la facturación en los primeros 7 días del siguiente mes.
+          </p>
+        </div>
+        <button onclick="closeRatesModal()" class="text-slate-400 hover:text-slate-600 p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Modal Body (Scrollable Table) -->
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+        
+        <div class="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl text-xs flex items-start space-x-2">
+          <i class="fa-solid fa-circle-info text-ml-accent text-base mt-0.5"></i>
+          <div>
+            <strong>¿Cómo calcula la app?</strong> Mercado Libre revisa tu volumen total a fin de mes. Si haces más de 50 envíos, aplica automáticamente el 20% OFF a <strong>todos</strong> tus envíos de ese mes. Si superas los 150 envíos, aplica el 50% OFF a todos.
+          </div>
+        </div>
+
+        <div class="border rounded-xl overflow-hidden shadow-sm">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
+                <th class="py-3 px-3 sm:px-4">Rango de peso</th>
+                <th class="py-3 px-3 text-center bg-yellow-50/50">De 3 a 50 envíos<br><span class="text-[10px] text-slate-500 font-normal">Base</span></th>
+                <th class="py-3 px-3 text-center bg-green-50/50 text-green-800">De 51 a 150 envíos<br><span class="text-[10px] text-green-700 font-bold">Con 20% de descuento</span></th>
+                <th class="py-3 px-3 text-center bg-emerald-100/50 text-emerald-900">Más de 150 envíos<br><span class="text-[10px] text-emerald-700 font-bold">Con 50% de descuento</span></th>
+                <th class="py-3 px-3 text-center text-slate-500">Mín. Publicación</th>
+              </tr>
+            </thead>
+            <tbody id="officialRatesTableBody" class="divide-y divide-slate-200 font-medium text-slate-700">
+              <!-- Dynamically populated from WEIGHT_RANGES -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button onclick="closeRatesModal()" class="bg-ml-blue hover:bg-ml-darkBlue text-white font-bold py-2 px-5 rounded-xl text-xs transition">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Custom Confirm Dialog -->
+  <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl transform transition-all border border-slate-100">
+      <div class="w-12 h-12 rounded-full bg-red-100 text-ml-red flex items-center justify-center text-xl font-bold mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 id="confirmModalTitle" class="text-lg font-extrabold text-slate-800 mb-2">¿Estás seguro?</h3>
+      <p id="confirmModalMessage" class="text-xs text-slate-600 mb-6">Esta acción no se puede deshacer.</p>
+
+      <div class="flex space-x-3">
+        <button id="confirmCancelBtn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">Cancelar</button>
+        <button id="confirmOkBtn" class="flex-1 bg-ml-red hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Manual Exchange Rate -->
+  <div id="manualRateModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-slate-800"><i class="fa-solid fa-pen-to-square text-ml-accent mr-2"></i>Ajustar Tasa BCV Manual</h3>
+        <button onclick="closeManualRateModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">Ingresa la tasa en bolívares por dólar (VES/USD) si deseas sobrescribir el valor de la API.</p>
+      
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-slate-700 mb-1">Tasa Manual (Bs.)</label>
+        <input type="number" step="0.01" id="manualRateInput" placeholder="Ej. 68.50" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-ml-accent focus:outline-none">
+      </div>
+
+      <div class="flex space-x-2">
+        <button onclick="closeManualRateModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition">Cancelar</button>
+        <button onclick="saveManualRate()" class="flex-1 bg-ml-blue text-ml-yellow font-bold py-2 rounded-xl text-xs transition">Guardar Tasa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Delete Specific Month -->
+  <div id="deleteMonthModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-slate-800"><i class="fa-solid fa-trash-can text-ml-red mr-2"></i>Eliminar Mes del Historial</h3>
+        <button onclick="closeDeleteMonthModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">Selecciona el mes que deseas eliminar completamente para liberar memoria.</p>
+
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-slate-700 mb-1">Seleccionar Mes</label>
+        <select id="deleteMonthSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-ml-red focus:outline-none">
+          <!-- Populated dynamically -->
+        </select>
+      </div>
+
+      <button onclick="executeDeleteMonth()" class="w-full bg-ml-red hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center space-x-1">
+        <i class="fa-solid fa-trash"></i>
+        <span>Eliminar Mes Seleccionado</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-bold flex items-center space-x-2">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-green-400 text-base"></i>
+    <span id="toastMsg">Mensaje de notificación</span>
+  </div>
+
+  <script>
+    /**
+     * Official Mercado Libre Venezuela Free Shipping Table Data
+     * Exactly matching the official tariff chart provided:
+     * Tier 1 (t1): 3 to 50 shipments
+     * Tier 2 (t2): 51 to 150 shipments (20% discount)
+     * Tier 3 (t3): > 150 shipments (50% discount)
+     */
+    const WEIGHT_RANGES = [
+      { id: 'w1', label: '0 - 0,5 kg', minPrice: 3.00, t1: 1.30, t2: 1.04, t3: 0.65 },
+      { id: 'w2', label: '0,51 - 1 kg', minPrice: 7.00, t1: 1.33, t2: 1.06, t3: 0.66 },
+      { id: 'w3', label: '1,01 - 1,5 kg', minPrice: 15.00, t1: 1.35, t2: 1.08, t3: 0.68 },
+      { id: 'w4', label: '1,51 - 2 kg', minPrice: 20.00, t1: 1.38, t2: 1.10, t3: 0.69 },
+      { id: 'w5', label: '2,01 - 4 kg', minPrice: 30.00, t1: 1.40, t2: 1.12, t3: 0.70 },
+      { id: 'w6', label: '4,01 - 6 kg', minPrice: 50.00, t1: 1.43, t2: 1.14, t3: 0.71 },
+      { id: 'w7', label: '6,01 - 8 kg', minPrice: 60.00, t1: 1.45, t2: 1.16, t3: 0.73 },
+      { id: 'w8', label: '8,01 - 10 kg', minPrice: 60.00, t1: 1.48, t2: 1.18, t3: 0.74 },
+      { id: 'w9', label: '10,01 - 20 kg', minPrice: 80.00, t1: 1.50, t2: 1.20, t3: 0.75 },
+      { id: 'w10', label: '20,01 - 30 kg', minPrice: 80.00, t1: 3.90, t2: 3.12, t3: 1.95 },
+      { id: 'w11', label: '30,01 - 40 kg', minPrice: 80.00, t1: 9.05, t2: 7.24, t3: 4.52 },
+      { id: 'w12', label: '40,01 - 50 kg', minPrice: 80.00, t1: 9.64, t2: 7.72, t3: 4.82 },
+      { id: 'w13', label: '50,01 - 60 kg', minPrice: 80.00, t1: 15.48, t2: 12.39, t3: 7.74 },
+      { id: 'w14', label: '60,01 - 70 kg', minPrice: 80.00, t1: 15.51, t2: 12.41, t3: 7.75 },
+      { id: 'w15', label: '70,01 - 80 kg', minPrice: 80.00, t1: 19.78, t2: 15.82, t3: 9.89 },
+      { id: 'w16', label: '80,01 - 100 kg', minPrice: 200.00, t1: 30.45, t2: 24.36, t3: 15.22 }
+    ];
+
+    // App State
+    let sales = JSON.parse(localStorage.getItem('mlv_sales_v2') || '[]');
+    let bcvRate = parseFloat(localStorage.getItem('mlv_bcv_rate_v2') || '0');
+    let bcvLastUpdatedStr = localStorage.getItem('mlv_bcv_time_v2') || '';
+    let activeMonthKey = ''; // Format YYYY-MM
+    let weightChartInstance = null;
+    let trendChartInstance = null;
+    let deferredPwaPrompt = null;
+
+    // Window Load Initialization
+    window.onload = function() {
+      populateWeightDropdowns();
+      populateOfficialRatesModalTable();
+      setDefaultDate();
+      initMonthSelector();
+      fetchBcvRate();
+      calculateStorageUsage();
+      render();
+      registerPwaServiceWorker();
+    };
+
+    function populateWeightDropdowns() {
+      const selectForm = document.getElementById('inputWeight');
+      const selectChecker = document.getElementById('checkerWeight');
+      
+      const optionsHtml = WEIGHT_RANGES.map(w => 
+        `<option value="${w.id}">${w.label} (Mín. $${w.minPrice.toFixed(2)})</option>`
+      ).join('');
+
+      selectForm.innerHTML = optionsHtml;
+      selectChecker.innerHTML = optionsHtml;
+      updateMinPriceHint();
+      runEligibilityCheck();
+    }
+
+    function populateOfficialRatesModalTable() {
+      const tbody = document.getElementById('officialRatesTableBody');
+      tbody.innerHTML = WEIGHT_RANGES.map(w => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-2.5 px-3 sm:px-4 font-bold text-slate-800">${w.label}</td>
+          <td class="py-2.5 px-3 text-center bg-yellow-50/30 font-semibold text-slate-700">US$ ${w.t1.toFixed(2).replace('.', ',')}</td>
+          <td class="py-2.5 px-3 text-center bg-green-50/30 font-extrabold text-green-700">US$ ${w.t2.toFixed(2).replace('.', ',')}</td>
+          <td class="py-2.5 px-3 text-center bg-emerald-100/30 font-black text-emerald-800">US$ ${w.t3.toFixed(2).replace('.', ',')}</td>
+          <td class="py-2.5 px-3 text-center font-bold text-slate-500">$${w.minPrice.toFixed(2)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function openRatesModal() {
+      document.getElementById('officialRatesModal').classList.remove('hidden');
+    }
+
+    function closeRatesModal() {
+      document.getElementById('officialRatesModal').classList.add('hidden');
+    }
+
+    function setDefaultDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('inputDate').value = today;
+    }
+
+    function getMonthKey(dateStr) {
+      if (!dateStr) return new Date().toISOString().substring(0, 7);
+      return dateStr.substring(0, 7);
+    }
+
+    function initMonthSelector() {
+      const selector = document.getElementById('monthSelector');
+      const currentMonthKey = new Date().toISOString().substring(0, 7);
+
+      let keys = Array.from(new Set(sales.map(s => getMonthKey(s.date))));
+      if (!keys.includes(currentMonthKey)) {
+        keys.push(currentMonthKey);
+      }
+      keys.sort().reverse();
+
+      selector.innerHTML = keys.map(k => {
+        const [y, m] = k.split('-');
+        const dateObj = new Date(y, parseInt(m) - 1, 1);
+        const monthName = dateObj.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+        return `<option value="${k}">${monthName.toUpperCase()}</option>`;
+      }).join('');
+
+      if (!activeMonthKey || !keys.includes(activeMonthKey)) {
+        activeMonthKey = currentMonthKey;
+      }
+      selector.value = activeMonthKey;
+    }
+
+    function switchMonth(monthKey) {
+      activeMonthKey = monthKey;
+      render();
+    }
+
+    async function fetchBcvRate(forceUserTrigger = false) {
+      const refreshIcon = document.getElementById('bcvRefreshIcon');
+      refreshIcon.classList.add('fa-spin');
+
+      try {
+        // Try Primary API Endpoint
+        const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+        if (!res.ok) throw new Error('Primary API Error');
+        const data = await res.json();
+        
+        if (data && data.promedio) {
+          bcvRate = parseFloat(data.promedio);
+          bcvLastUpdatedStr = new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
+          saveBcvState();
+          if (forceUserTrigger) showToast('Tasa BCV actualizada exitosamente');
+        } else {
+          throw new Error('Invalid Data');
+        }
+      } catch (err) {
+        // Backup API Endpoint
+        try {
+          const res2 = await fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv');
+          const data2 = await res2.json();
+          if (data2 && data2.moneda && data2.moneda.promedio) {
+            bcvRate = parseFloat(data2.moneda.promedio);
+            bcvLastUpdatedStr = new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
+            saveBcvState();
+            if (forceUserTrigger) showToast('Tasa BCV actualizada de fuente secundaria');
+          }
+        } catch (e) {
+          if (!bcvRate) bcvRate = 65.00; // Fallback estimate if all offline
+          bcvLastUpdatedStr = 'Guardada en caché';
+        }
+      } finally {
+        refreshIcon.classList.remove('fa-spin');
+        renderBcvDisplay();
+        render();
+      }
+    }
+
+    function saveBcvState() {
+      localStorage.setItem('mlv_bcv_rate_v2', bcvRate.toString());
+      localStorage.setItem('mlv_bcv_time_v2', bcvLastUpdatedStr);
+    }
+
+    function renderBcvDisplay() {
+      document.getElementById('bcvRateDisplay').innerText = bcvRate ? `${bcvRate.toFixed(2)} VES` : '0.00 VES';
+      document.getElementById('bcvLastUpdate').innerText = `Act. ${bcvLastUpdatedStr || 'reciente'}`;
+    }
+
+    function openManualRateModal() {
+      document.getElementById('manualRateInput').value = bcvRate ? bcvRate.toFixed(2) : '';
+      document.getElementById('manualRateModal').classList.remove('hidden');
+    }
+
+    function closeManualRateModal() {
+      document.getElementById('manualRateModal').classList.add('hidden');
+    }
+
+    function saveManualRate() {
+      const val = parseFloat(document.getElementById('manualRateInput').value);
+      if (val && val > 0) {
+        bcvRate = val;
+        bcvLastUpdatedStr = 'Manual (' + new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }) + ')';
+        saveBcvState();
+        renderBcvDisplay();
+        render();
+        closeManualRateModal();
+        showToast('Tasa manual aplicada correctamente');
+      }
+    }
+
+    function updateMinPriceHint() {
+      const selectedId = document.getElementById('inputWeight').value;
+      const weightObj = WEIGHT_RANGES.find(w => w.id === selectedId) || WEIGHT_RANGES[0];
+      document.getElementById('minPriceValue').innerText = `$${weightObj.minPrice.toFixed(2)}`;
+    }
+
+    function runEligibilityCheck() {
+      const weightId = document.getElementById('checkerWeight').value;
+      const price = parseFloat(document.getElementById('checkerPrice').value) || 0;
+      const weightObj = WEIGHT_RANGES.find(w => w.id === weightId) || WEIGHT_RANGES[0];
+      const resultBox = document.getElementById('checkerResult');
+
+      if (price <= 0) {
+        resultBox.classList.add('hidden');
+        return;
+      }
+
+      resultBox.classList.remove('hidden');
+      if (price >= weightObj.minPrice) {
+        resultBox.className = 'p-2.5 rounded-lg text-xs font-bold bg-green-500/20 text-green-200 border border-green-500/30';
+        resultBox.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> ¡Apto! Supera el precio mínimo ($${weightObj.minPrice.toFixed(2)}) para ofrecer envío gratis.`;
+      } else {
+        resultBox.className = 'p-2.5 rounded-lg text-xs font-bold bg-red-500/20 text-red-200 border border-red-500/30';
+        resultBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> No Apto. Falta $${(weightObj.minPrice - price).toFixed(2)} para alcanzar el precio mínimo ($${weightObj.minPrice.toFixed(2)}).`;
+      }
+    }
+
+    function handleSaleSubmit(e) {
+      e.preventDefault();
+      const date = document.getElementById('inputDate').value;
+      const title = document.getElementById('inputTitle').value.trim();
+      const weightId = document.getElementById('inputWeight').value;
+      const price = parseFloat(document.getElementById('inputPrice').value) || 0;
+      const qty = parseInt(document.getElementById('inputQty').value) || 1;
+
+      const newRecord = {
+        id: 'sale_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        date,
+        title,
+        weightId,
+        price,
+        qty
+      };
+
+      sales.push(newRecord);
+      saveSalesToStorage();
+
+      // Reset form
+      document.getElementById('inputTitle').value = '';
+      document.getElementById('inputPrice').value = '';
+      document.getElementById('inputQty').value = '1';
+
+      // Ensure view switches to month of record
+      const recordMonth = getMonthKey(date);
+      activeMonthKey = recordMonth;
+      initMonthSelector();
+
+      render();
+      showToast('Registro de venta guardado');
+    }
+
+    function deleteSaleRecord(id) {
+      showCustomConfirm('¿Eliminar registro?', 'Esta venta se removerá del cálculo mensual.', () => {
+        sales = sales.filter(s => s.id !== id);
+        saveSalesToStorage();
+        render();
+        showToast('Registro eliminado');
+      });
+    }
+
+    function saveSalesToStorage() {
+      localStorage.setItem('mlv_sales_v2', JSON.stringify(sales));
+      calculateStorageUsage();
+    }
+
+    function render() {
+      // Filter sales for active month
+      const monthSales = sales.filter(s => getMonthKey(s.date) === activeMonthKey);
+      
+      // Calculate total shipment count in the month
+      const totalShipmentQty = monthSales.reduce((acc, s) => acc + s.qty, 0);
+
+      // Determine ML Discount Tier for the month
+      let activeTierKey = 't1';
+      let tierName = 'Regular (3 a 50 envíos)';
+      let discountPctText = '0% OFF';
+      let progressBarWidth = 0;
+      let nextGoalText = '';
+
+      if (totalShipmentQty < 3) {
+        tierName = 'Sin tramo mínimo (0 a 2 envíos)';
+        discountPctText = '0% OFF';
+        progressBarWidth = (totalShipmentQty / 3) * 15;
+        nextGoalText = `Faltan ${3 - totalShipmentQty} envíos para tramo regular`;
+      } else if (totalShipmentQty <= 50) {
+        activeTierKey = 't1';
+        tierName = 'Tramo Regular (3 a 50 envíos)';
+        discountPctText = '0% OFF';
+        progressBarWidth = 15 + ((totalShipmentQty - 3) / 47) * 35;
+        nextGoalText = `Faltan ${51 - totalShipmentQty} envíos para desbloquear 20% OFF`;
+      } else if (totalShipmentQty <= 150) {
+        activeTierKey = 't2';
+        tierName = 'Tramo Plata (51 a 150 envíos)';
+        discountPctText = '20% OFF';
+        progressBarWidth = 50 + ((totalShipmentQty - 51) / 99) * 35;
+        nextGoalText = `Faltan ${151 - totalShipmentQty} envíos para desbloquear 50% OFF`;
+      } else {
+        activeTierKey = 't3';
+        tierName = 'Tramo Oro (> 150 envíos)';
+        discountPctText = '50% OFF';
+        progressBarWidth = 100;
+        nextGoalText = '¡Nivel máximo de descuento alcanzado!';
+      }
+
+      // Update Tier UI Header
+      document.getElementById('tierShipmentCount').innerText = totalShipmentQty;
+      document.getElementById('tierBadge').innerText = tierName;
+      document.getElementById('tierDiscountText').innerText = discountPctText;
+      document.getElementById('tierNextGoal').innerText = nextGoalText;
+      document.getElementById('progressBarFill').style.width = `${Math.min(progressBarWidth, 100)}%`;
+
+      // Calculate Metrics with active tier retroactive pricing
+      let totalSalesUsd = 0;
+      let totalShippingCostUsd = 0;
+      let totalStandardCostUsd = 0; // Without discount to calculate savings
+
+      monthSales.forEach(s => {
+        const weightObj = WEIGHT_RANGES.find(w => w.id === s.weightId) || WEIGHT_RANGES[0];
+        const unitCost = weightObj[activeTierKey];
+        const unitStandardCost = weightObj.t1;
+
+        totalSalesUsd += (s.price * s.qty);
+        totalShippingCostUsd += (unitCost * s.qty);
+        totalStandardCostUsd += (unitStandardCost * s.qty);
+      });
+
+      const netIncomeUsd = totalSalesUsd - totalShippingCostUsd;
+      const marginPercent = totalSalesUsd > 0 ? ((netIncomeUsd / totalSalesUsd) * 100) : 0;
+      const shippingRatio = totalSalesUsd > 0 ? ((totalShippingCostUsd / totalSalesUsd) * 100) : 0;
+      const totalSavedUsd = totalStandardCostUsd - totalShippingCostUsd;
+      const avgShippingCost = totalShipmentQty > 0 ? (totalShippingCostUsd / totalShipmentQty) : 0;
+
+      // Render KPIs
+      document.getElementById('kpiTotalSalesUsd').innerText = `$${totalSalesUsd.toFixed(2)}`;
+      document.getElementById('kpiTotalSalesVes').innerText = bcvRate ? `${(totalSalesUsd * bcvRate).toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} VES` : '0.00 VES';
+      document.getElementById('kpiSalesCount').innerText = `${monthSales.length} órdenes`;
+
+      document.getElementById('kpiTotalShippingUsd').innerText = `$${totalShippingCostUsd.toFixed(2)}`;
+      document.getElementById('kpiTotalShippingVes').innerText = bcvRate ? `${(totalShippingCostUsd * bcvRate).toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} VES` : '0.00 VES';
+      document.getElementById('kpiShipmentCostAvg').innerText = `$${avgShippingCost.toFixed(2)} / envío`;
+
+      document.getElementById('kpiNetIncomeUsd').innerText = `$${netIncomeUsd.toFixed(2)}`;
+      document.getElementById('kpiNetIncomeVes').innerText = bcvRate ? `${(netIncomeUsd * bcvRate).toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} VES` : '0.00 VES';
+      document.getElementById('kpiMarginPercent').innerText = `${marginPercent.toFixed(1)}%`;
+
+      document.getElementById('kpiShippingRatio').innerText = `${shippingRatio.toFixed(1)}%`;
+      document.getElementById('kpiTotalSavedUsd').innerText = `$${totalSavedUsd.toFixed(2)}`;
+
+      // Render Table
+      renderTable(monthSales, activeTierKey);
+
+      // Render Charts
+      renderCharts(monthSales, activeTierKey);
+    }
+
+    function renderTable(monthSalesOverride = null, activeTierKey = 't1') {
+      const monthSales = monthSalesOverride || sales.filter(s => getMonthKey(s.date) === activeMonthKey);
+      const searchTerm = (document.getElementById('searchTable').value || '').toLowerCase();
+      
+      const filteredSales = monthSales.filter(s => 
+        s.title.toLowerCase().includes(searchTerm) || s.date.includes(searchTerm)
+      );
+
+      const tbody = document.getElementById('salesTableBody');
+      tbody.innerHTML = '';
+
+      if (filteredSales.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-8 text-center text-slate-400">
+              <i class="fa-solid fa-inbox text-3xl mb-2 block"></i>
+              No hay ventas registradas para este mes o búsqueda.
+            </td>
+          </tr>
+        `;
+        document.getElementById('tableRowsCount').innerText = '0 registros';
+        document.getElementById('tableSubtotalCost').innerText = '$0.00 costo envíos';
+        return;
+      }
+
+      let subtotalCostUsd = 0;
+
+      // Sort recent first
+      filteredSales.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(s => {
+        const weightObj = WEIGHT_RANGES.find(w => w.id === s.weightId) || WEIGHT_RANGES[0];
+        const unitCost = weightObj[activeTierKey];
+        const totalShipCost = unitCost * s.qty;
+        subtotalCostUsd += totalShipCost;
+
+        const totalShipCostVes = bcvRate ? (totalShipCost * bcvRate).toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-800">${s.title}</div>
+              <div class="text-[10px] text-slate-400 flex items-center space-x-2 mt-0.5">
+                <span><i class="fa-regular fa-calendar mr-1"></i>${s.date}</span>
+                <span>•</span>
+                <span class="font-semibold text-slate-600">${s.qty} unidad(es)</span>
+              </div>
+            </td>
+            <td class="py-3 px-3">
+              <span class="inline-block bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">
+                ${weightObj.label}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-right font-bold text-slate-800">
+              $${(s.price * s.qty).toFixed(2)}
+            </td>
+            <td class="py-3 px-3 text-right">
+              <div class="font-bold text-ml-red">$${totalShipCost.toFixed(2)}</div>
+              <div class="text-[10px] text-slate-400 font-normal">${totalShipCostVes} Bs.</div>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <button onclick="deleteSaleRecord('${s.id}')" title="Eliminar" class="text-slate-400 hover:text-ml-red p-1 rounded transition">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      const [y, m] = activeMonthKey.split('-');
+      const monthDate = new Date(y, parseInt(m) - 1, 1);
+      document.getElementById('tableMonthTitle').innerText = monthDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+      document.getElementById('tableRowsCount').innerText = `${filteredSales.length} registro(s)`;
+      document.getElementById('tableSubtotalCost').innerText = `$${subtotalCostUsd.toFixed(2)} costo envíos`;
+    }
+
+    function renderCharts(monthSales, activeTierKey) {
+      // 1. Weight Breakdown Chart
+      const weightCounts = {};
+      monthSales.forEach(s => {
+        const weightObj = WEIGHT_RANGES.find(w => w.id === s.weightId) || WEIGHT_RANGES[0];
+        weightCounts[weightObj.label] = (weightCounts[weightObj.label] || 0) + s.qty;
+      });
+
+      const weightLabels = Object.keys(weightCounts);
+      const weightData = Object.values(weightCounts);
+
+      const ctxWeight = document.getElementById('weightChart').getContext('2d');
+      if (weightChartInstance) weightChartInstance.destroy();
+
+      weightChartInstance = new Chart(ctxWeight, {
+        type: 'doughnut',
+        data: {
+          labels: weightLabels.length ? weightLabels : ['Sin datos'],
+          datasets: [{
+            data: weightData.length ? weightData : [1],
+            backgroundColor: ['#2D3277', '#3483FA', '#00A650', '#FFE600', '#F23D4F', '#8E44AD', '#34495E']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+            title: { display: true, text: 'Envíos por Peso', font: { size: 12, weight: 'bold' } }
+          }
+        }
+      });
+
+      // 2. Trend Chart (Daily Sales vs Shipping)
+      const dailyMap = {};
+      monthSales.forEach(s => {
+        if (!dailyMap[s.date]) dailyMap[s.date] = { sales: 0, shipping: 0 };
+        const weightObj = WEIGHT_RANGES.find(w => w.id === s.weightId) || WEIGHT_RANGES[0];
+        dailyMap[s.date].sales += (s.price * s.qty);
+        dailyMap[s.date].shipping += (weightObj[activeTierKey] * s.qty);
+      });
+
+      const dates = Object.keys(dailyMap).sort();
+      const salesTrend = dates.map(d => dailyMap[d].sales);
+      const shippingTrend = dates.map(d => dailyMap[d].shipping);
+
+      const ctxTrend = document.getElementById('trendChart').getContext('2d');
+      if (trendChartInstance) trendChartInstance.destroy();
+
+      trendChartInstance = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: dates.length ? dates : ['---'],
+          datasets: [
+            {
+              label: 'Ventas ($)',
+              data: salesTrend.length ? salesTrend : [0],
+              borderColor: '#00A650',
+              backgroundColor: 'rgba(0, 166, 80, 0.1)',
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Costo Envíos ($)',
+              data: shippingTrend.length ? shippingTrend : [0],
+              borderColor: '#F23D4F',
+              backgroundColor: 'rgba(242, 61, 79, 0.1)',
+              fill: true,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+            title: { display: true, text: 'Tendencia Diaria ($)', font: { size: 12, weight: 'bold' } }
+          },
+          scales: {
+            x: { ticks: { font: { size: 9 } } },
+            y: { ticks: { font: { size: 9 } } }
+          }
+        }
+      });
+    }
+
+    function calculateStorageUsage() {
+      const dataStr = localStorage.getItem('mlv_sales_v2') || '';
+      const bytes = new Blob([dataStr]).size;
+      const kb = (bytes / 1024).toFixed(1);
+      document.getElementById('storageUsageBadge').innerText = `${kb} KB / ~5000 KB`;
+    }
+
+    function openDeleteMonthModal() {
+      const select = document.getElementById('deleteMonthSelect');
+      const monthKeys = Array.from(new Set(sales.map(s => getMonthKey(s.date)))).sort().reverse();
+
+      if (monthKeys.length === 0) {
+        showToast('No hay historial de meses para eliminar');
+        return;
+      }
+
+      select.innerHTML = monthKeys.map(k => {
+        const [y, m] = k.split('-');
+        const dateObj = new Date(y, parseInt(m) - 1, 1);
+        const name = dateObj.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+        return `<option value="${k}">${name.toUpperCase()}</option>`;
+      }).join('');
+
+      document.getElementById('deleteMonthModal').classList.remove('hidden');
+    }
+
+    function closeDeleteMonthModal() {
+      document.getElementById('deleteMonthModal').classList.add('hidden');
+    }
+
+    function executeDeleteMonth() {
+      const selectedMonth = document.getElementById('deleteMonthSelect').value;
+      if (!selectedMonth) return;
+
+      showCustomConfirm('¿Eliminar mes completo?', `Se borrarán permanentemente todos los registros de ${selectedMonth}.`, () => {
+        sales = sales.filter(s => getMonthKey(s.date) !== selectedMonth);
+        saveSalesToStorage();
+        closeDeleteMonthModal();
+        initMonthSelector();
+        render();
+        showToast(`Mes ${selectedMonth} eliminado con éxito`);
+      });
+    }
+
+    function exportDataCsv() {
+      const monthSales = sales.filter(s => getMonthKey(s.date) === activeMonthKey);
+      if (monthSales.length === 0) {
+        showToast('No hay datos en el mes activo para exportar');
+        return;
+      }
+
+      let csv = 'Fecha,Producto,Rango_Peso,Precio_Venta_USD,Cantidad,Costo_Envio_Unidad_USD\n';
+      monthSales.forEach(s => {
+        const weightObj = WEIGHT_RANGES.find(w => w.id === s.weightId) || WEIGHT_RANGES[0];
+        csv += `"${s.date}","${s.title.replace(/"/g, '""')}","${weightObj.label}",${s.price},${s.qty},${weightObj.t1}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `MercadoLibre_VZLA_${activeMonthKey}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Exportación CSV completada');
+    }
+
+    function exportDataJson() {
+      const dataStr = JSON.stringify(sales, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Respaldo_ML_Venezuela_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Respaldo JSON descargado');
+    }
+
+    function showCustomConfirm(title, message, onConfirm) {
+      document.getElementById('confirmModalTitle').innerText = title;
+      document.getElementById('confirmModalMessage').innerText = message;
+      
+      const modal = document.getElementById('confirmModal');
+      const okBtn = document.getElementById('confirmOkBtn');
+      const cancelBtn = document.getElementById('confirmCancelBtn');
+
+      modal.classList.remove('hidden');
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        okBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+
+      okBtn.onclick = () => {
+        cleanup();
+        if (onConfirm) onConfirm();
+      };
+
+      cancelBtn.onclick = () => {
+        cleanup();
+      };
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    function registerPwaServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response("Modo Offline Activo"))));
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+        const installBtn = document.getElementById('pwaInstallBtn');
+        if (installBtn) installBtn.classList.remove('hidden');
+      });
+    }
+
+    function promptPwaInstall() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            showToast('¡Gracias por instalar la aplicación!');
+          }
+          deferredPwaPrompt = null;
+          document.getElementById('pwaInstallBtn').classList.add('hidden');
+        });
+      } else {
+        showToast('Para instalar: usa la opción "Agregar a Pantalla Principal" de tu navegador');
+      }
+    }
+  </script>
+</body>
+</html>
