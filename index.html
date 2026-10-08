@@ -8,10 +8,14 @@
   <meta name="description" content="Gestión de ventas, métricas y cálculo de costos por envíos gratis de Mercado Libre Venezuela con tasa BCV en tiempo real.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ML VZLA">
   
   <!-- Embedded Favicon SVG -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FFE600'/><path d='M22 38 L50 22 L78 38 L78 68 L50 84 L22 68 Z' fill='none' stroke='%232D3277' stroke-width='7' stroke-linejoin='round'/><path d='M22 38 L50 53 L78 38' fill='none' stroke='%232D3277' stroke-width='7' stroke-linejoin='round'/><path d='M50 53 L50 84' fill='none' stroke='%232D3277' stroke-width='7'/><circle cx='50' cy='38' r='5' fill='%232D3277'/></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FFE600'/><path d='M22 38 L50 22 L78 38 L78 68 L50 84 L22 68 Z' fill='none' stroke='%232D3277' stroke-width='7' stroke-linejoin='round'/><path d='M22 38 L50 53 L78 38' fill='none' stroke='%232D3277' stroke-width='7' stroke-linejoin='round'/><path d='M50 53 L50 84' fill='none' stroke='%232D3277' stroke-width='7'/><circle cx='50' cy='38' r='5' fill='%232D3277'/></svg>">
+
+  <!-- Dynamic PWA Manifest Link -->
+  <link id="pwaManifestLink" rel="manifest">
 
   <!-- Tailwind CSS & FontAwesome Icons & Chart.js -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -45,7 +49,7 @@
   </script>
 
   <style>
-    /* Custom scrollbar and animations */
+    /* Custom scrollbar and glassmorphism styling */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f1f1; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -71,7 +75,7 @@
         </div>
       </div>
 
-      <!-- Actions & BCV Indicator -->
+      <!-- Actions & PWA Status -->
       <div class="flex items-center space-x-2 sm:space-x-3">
         <!-- Official Rates Table Button -->
         <button onclick="openRatesModal()" class="bg-white/90 hover:bg-white text-ml-blue font-extrabold text-xs px-3 py-1.5 rounded-lg border border-yellow-400 shadow-sm transition flex items-center space-x-1.5">
@@ -86,10 +90,10 @@
           </select>
         </div>
 
-        <!-- PWA Install Button -->
-        <button id="pwaInstallBtn" onclick="promptPwaInstall()" class="hidden bg-ml-blue text-white hover:bg-ml-darkBlue px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 shadow-sm">
-          <i class="fa-solid fa-download"></i>
-          <span class="hidden md:inline">Instalar App</span>
+        <!-- PWA Install / Guide Button -->
+        <button id="pwaInstallBtn" onclick="triggerPwaInstallation()" class="bg-ml-blue text-white hover:bg-ml-darkBlue px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 shadow-sm">
+          <i class="fa-solid fa-mobile-screen-button text-ml-yellow"></i>
+          <span class="hidden md:inline">Instalar App PWA</span>
         </button>
       </div>
     </div>
@@ -330,6 +334,24 @@
           </div>
         </div>
 
+        <!-- GitHub Pages PWA Quick Status Box -->
+        <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm border border-slate-800">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <i class="fa-brands fa-github text-ml-yellow text-lg"></i>
+              <h3 class="font-extrabold text-xs uppercase tracking-wider text-slate-200">Asistente PWA GitHub Pages</h3>
+            </div>
+            <span id="pwaStatusTag" class="text-[10px] bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded font-extrabold">Verificando...</span>
+          </div>
+          <p class="text-xs text-slate-300 mb-3">
+            ¿Aparece "No se puede instalar esta app"? Revisa la solución paso a paso para GitHub Pages.
+          </p>
+          <button onclick="openPwaHelpModal()" class="w-full bg-ml-yellow hover:bg-yellow-300 text-ml-blue font-extrabold py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-wrench"></i>
+            <span>Ver Configuración PWA / Copiar sw.js</span>
+          </button>
+        </div>
+
         <!-- Data & Storage Manager -->
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
           <h3 class="font-extrabold text-slate-800 text-sm mb-3 flex items-center justify-between">
@@ -442,6 +464,79 @@
       </p>
     </div>
   </footer>
+
+  <!-- MODAL: PWA Installation & GitHub Pages Setup Guide -->
+  <div id="pwaHelpModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-ml-darkBlue text-white p-4 sm:p-5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-ml-yellow text-ml-blue flex items-center justify-center text-xl font-extrabold">
+            <i class="fa-solid fa-mobile-screen"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black">Configuración PWA en GitHub Pages</h3>
+            <p class="text-xs text-slate-300">Solución al aviso "No se puede instalar esta app"</p>
+          </div>
+        </div>
+        <button onclick="closePwaHelpModal()" class="text-slate-300 hover:text-white p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-700 leading-relaxed">
+        
+        <div class="bg-amber-50 border border-amber-200 text-amber-900 p-3.5 rounded-xl flex items-start space-x-3">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg mt-0.5"></i>
+          <div>
+            <strong>¿Por qué Chrome muestra "No se puede instalar esta app"?</strong><br>
+            Google Chrome exige que en el servidor HTTPS de GitHub Pages exista un archivo de Service Worker en el mismo dominio (ej: <code class="bg-amber-100 px-1 py-0.5 rounded text-amber-950 font-mono">sw.js</code>) para construir la aplicación nativa (WebAPK).
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="font-extrabold text-slate-800 text-sm flex items-center">
+            <i class="fa-solid fa-list-check text-ml-accent mr-2"></i>Paso Único para GitHub Pages:
+          </h4>
+          
+          <ol class="list-decimal pl-5 space-y-2 text-xs font-medium text-slate-700">
+            <li>
+              Crea un archivo llamado <code class="bg-slate-100 text-ml-blue font-bold px-1.5 py-0.5 rounded">sw.js</code> en la raíz de tu repositorio de GitHub (al lado de <code class="bg-slate-100 text-slate-800 font-bold px-1 py-0.5 rounded">index.html</code>).
+            </li>
+            <li>
+              Copia el siguiente contenido dentro de ese archivo <code class="bg-slate-100 text-ml-blue font-bold px-1 py-0.5 rounded">sw.js</code>:
+            </li>
+          </ol>
+
+          <!-- Code Box -->
+          <div class="relative bg-slate-900 text-slate-100 rounded-xl p-3 font-mono text-[11px] overflow-x-auto border border-slate-800">
+            <button onclick="copySwCode()" class="absolute top-2 right-2 bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1 rounded text-[10px] font-sans font-bold flex items-center space-x-1">
+              <i class="fa-regular fa-copy"></i>
+              <span>Copiar sw.js</span>
+            </button>
+            <pre id="swCodeBlock">self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => self.clients.claim());
+self.addEventListener('fetch', e => {
+  e.respondWith(fetch(e.request).catch(() => new Response("Modo Offline Activo")));
+});</pre>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i class="fa-solid fa-circle-check text-green-600 text-base"></i>
+              <span>Una vez subido <code class="font-bold">sw.js</code> a GitHub, recarga la página y presiona <strong>Instalar</strong>.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2">
+        <button onclick="closePwaHelpModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs transition">Cerrar</button>
+        <button onclick="triggerPwaInstallation()" class="bg-ml-blue hover:bg-ml-darkBlue text-ml-yellow font-black py-2 px-5 rounded-xl text-xs transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-download"></i>
+          <span>Intentar Instalación Ahora</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: Official Mercado Libre Rates Table -->
   <div id="officialRatesModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-5">
@@ -565,7 +660,6 @@
   <script>
     /**
      * Official Mercado Libre Venezuela Free Shipping Table Data
-     * Exactly matching the official tariff chart provided:
      * Tier 1 (t1): 3 to 50 shipments
      * Tier 2 (t2): 51 to 150 shipments (20% discount)
      * Tier 3 (t3): > 150 shipments (50% discount)
@@ -598,8 +692,8 @@
     let trendChartInstance = null;
     let deferredPwaPrompt = null;
 
-    // Window Load Initialization
     window.onload = function() {
+      setupPwaManifestAndIcons();
       populateWeightDropdowns();
       populateOfficialRatesModalTable();
       setDefaultDate();
@@ -609,6 +703,162 @@
       render();
       registerPwaServiceWorker();
     };
+
+    /**
+     * Dynamically renders a 512x512 app icon onto HTML5 Canvas and embeds
+     * a fully compliant Web App Manifest data URI directly into <head>.
+     */
+    function setupPwaManifestAndIcons() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // Background Box
+        ctx.fillStyle = '#FFE600';
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 512, 512, 100);
+        ctx.fill();
+
+        // Icon Outer Box
+        ctx.strokeStyle = '#2D3277';
+        ctx.lineWidth = 32;
+        ctx.lineJoin = 'round';
+        
+        ctx.beginPath();
+        ctx.moveTo(120, 195);
+        ctx.lineTo(256, 115);
+        ctx.lineTo(392, 195);
+        ctx.lineTo(392, 350);
+        ctx.lineTo(256, 430);
+        ctx.lineTo(120, 350);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(120, 195);
+        ctx.lineTo(256, 275);
+        ctx.lineTo(392, 195);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(256, 275);
+        ctx.lineTo(256, 430);
+        ctx.stroke();
+
+        ctx.fillStyle = '#2D3277';
+        ctx.beginPath();
+        ctx.arc(256, 195, 26, 0, Math.PI * 2);
+        ctx.fill();
+
+        const iconDataUrl = canvas.toDataURL('image/png');
+
+        const manifestObj = {
+          name: "Mercado Libre VZLA - Calculadora",
+          short_name: "ML VZLA",
+          description: "Calculadora de Envíos Gratis y Gestión de Ventas Mercado Libre Venezuela",
+          start_url: "./",
+          display: "standalone",
+          background_color: "#1B1E4A",
+          theme_color: "#FFE600",
+          orientation: "portrait-primary",
+          icons: [
+            {
+              src: iconDataUrl,
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any maskable"
+            },
+            {
+              src: iconDataUrl,
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any maskable"
+            }
+          ]
+        };
+
+        const manifestString = "data:application/manifest+json;charset=utf-8," + encodeURIComponent(JSON.stringify(manifestObj));
+        document.getElementById('pwaManifestLink').href = manifestString;
+      } catch (err) {
+        console.warn('PWA manifest generation fallback:', err);
+      }
+    }
+
+    function registerPwaServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        // First try to register standard sw.js on domain
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          document.getElementById('pwaStatusTag').className = "text-[10px] bg-green-500/20 text-green-300 px-2 py-0.5 rounded font-extrabold";
+          document.getElementById('pwaStatusTag').innerText = "SW Activo ✓";
+        }).catch(() => {
+          // Fallback to Blob SW for standalone preview environments
+          const swCode = `
+            self.addEventListener('install', e => self.skipWaiting());
+            self.addEventListener('activate', e => self.clients.claim());
+            self.addEventListener('fetch', e => {
+              e.respondWith(fetch(e.request).catch(() => new Response("Modo Offline Activo")));
+            });
+          `;
+          const blob = new Blob([swCode], { type: 'application/javascript' });
+          navigator.serviceWorker.register(URL.createObjectURL(blob)).then(() => {
+            document.getElementById('pwaStatusTag').className = "text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-extrabold";
+            document.getElementById('pwaStatusTag').innerText = "Modo Demo SW";
+          }).catch(() => {
+            document.getElementById('pwaStatusTag').className = "text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-extrabold";
+            document.getElementById('pwaStatusTag').innerText = "Requiere sw.js";
+          });
+        });
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+        const installBtn = document.getElementById('pwaInstallBtn');
+        if (installBtn) {
+          installBtn.classList.remove('hidden');
+        }
+      });
+
+      window.addEventListener('appinstalled', () => {
+        showToast('¡Aplicación instalada con éxito!');
+        deferredPwaPrompt = null;
+      });
+    }
+
+    function triggerPwaInstallation() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            showToast('Instalando Mercado Libre VZLA App...');
+          }
+          deferredPwaPrompt = null;
+        });
+      } else {
+        openPwaHelpModal();
+      }
+    }
+
+    function openPwaHelpModal() {
+      document.getElementById('pwaHelpModal').classList.remove('hidden');
+    }
+
+    function closePwaHelpModal() {
+      document.getElementById('pwaHelpModal').classList.add('hidden');
+    }
+
+    function copySwCode() {
+      const code = document.getElementById('swCodeBlock').innerText;
+      const textArea = document.createElement('textarea');
+      textArea.value = code;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showToast('Código sw.js copiado al portapapeles');
+    }
 
     function populateWeightDropdowns() {
       const selectForm = document.getElementById('inputWeight');
@@ -688,7 +938,6 @@
       refreshIcon.classList.add('fa-spin');
 
       try {
-        // Try Primary API Endpoint
         const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
         if (!res.ok) throw new Error('Primary API Error');
         const data = await res.json();
@@ -702,7 +951,6 @@
           throw new Error('Invalid Data');
         }
       } catch (err) {
-        // Backup API Endpoint
         try {
           const res2 = await fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv');
           const data2 = await res2.json();
@@ -713,7 +961,7 @@
             if (forceUserTrigger) showToast('Tasa BCV actualizada de fuente secundaria');
           }
         } catch (e) {
-          if (!bcvRate) bcvRate = 65.00; // Fallback estimate if all offline
+          if (!bcvRate) bcvRate = 65.00;
           bcvLastUpdatedStr = 'Guardada en caché';
         }
       } finally {
@@ -802,12 +1050,10 @@
       sales.push(newRecord);
       saveSalesToStorage();
 
-      // Reset form
       document.getElementById('inputTitle').value = '';
       document.getElementById('inputPrice').value = '';
       document.getElementById('inputQty').value = '1';
 
-      // Ensure view switches to month of record
       const recordMonth = getMonthKey(date);
       activeMonthKey = recordMonth;
       initMonthSelector();
@@ -831,13 +1077,9 @@
     }
 
     function render() {
-      // Filter sales for active month
       const monthSales = sales.filter(s => getMonthKey(s.date) === activeMonthKey);
-      
-      // Calculate total shipment count in the month
       const totalShipmentQty = monthSales.reduce((acc, s) => acc + s.qty, 0);
 
-      // Determine ML Discount Tier for the month
       let activeTierKey = 't1';
       let tierName = 'Regular (3 a 50 envíos)';
       let discountPctText = '0% OFF';
@@ -869,17 +1111,15 @@
         nextGoalText = '¡Nivel máximo de descuento alcanzado!';
       }
 
-      // Update Tier UI Header
       document.getElementById('tierShipmentCount').innerText = totalShipmentQty;
       document.getElementById('tierBadge').innerText = tierName;
       document.getElementById('tierDiscountText').innerText = discountPctText;
       document.getElementById('tierNextGoal').innerText = nextGoalText;
       document.getElementById('progressBarFill').style.width = `${Math.min(progressBarWidth, 100)}%`;
 
-      // Calculate Metrics with active tier retroactive pricing
       let totalSalesUsd = 0;
       let totalShippingCostUsd = 0;
-      let totalStandardCostUsd = 0; // Without discount to calculate savings
+      let totalStandardCostUsd = 0;
 
       monthSales.forEach(s => {
         const weightObj = WEIGHT_RANGES.find(w => w.id === s.weightId) || WEIGHT_RANGES[0];
@@ -897,7 +1137,6 @@
       const totalSavedUsd = totalStandardCostUsd - totalShippingCostUsd;
       const avgShippingCost = totalShipmentQty > 0 ? (totalShippingCostUsd / totalShipmentQty) : 0;
 
-      // Render KPIs
       document.getElementById('kpiTotalSalesUsd').innerText = `$${totalSalesUsd.toFixed(2)}`;
       document.getElementById('kpiTotalSalesVes').innerText = bcvRate ? `${(totalSalesUsd * bcvRate).toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} VES` : '0.00 VES';
       document.getElementById('kpiSalesCount').innerText = `${monthSales.length} órdenes`;
@@ -913,10 +1152,7 @@
       document.getElementById('kpiShippingRatio').innerText = `${shippingRatio.toFixed(1)}%`;
       document.getElementById('kpiTotalSavedUsd').innerText = `$${totalSavedUsd.toFixed(2)}`;
 
-      // Render Table
       renderTable(monthSales, activeTierKey);
-
-      // Render Charts
       renderCharts(monthSales, activeTierKey);
     }
 
@@ -947,7 +1183,6 @@
 
       let subtotalCostUsd = 0;
 
-      // Sort recent first
       filteredSales.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(s => {
         const weightObj = WEIGHT_RANGES.find(w => w.id === s.weightId) || WEIGHT_RANGES[0];
         const unitCost = weightObj[activeTierKey];
@@ -995,7 +1230,6 @@
     }
 
     function renderCharts(monthSales, activeTierKey) {
-      // 1. Weight Breakdown Chart
       const weightCounts = {};
       monthSales.forEach(s => {
         const weightObj = WEIGHT_RANGES.find(w => w.id === s.weightId) || WEIGHT_RANGES[0];
@@ -1027,7 +1261,6 @@
         }
       });
 
-      // 2. Trend Chart (Daily Sales vs Shipping)
       const dailyMap = {};
       monthSales.forEach(s => {
         if (!dailyMap[s.date]) dailyMap[s.date] = { sales: 0, shipping: 0 };
@@ -1199,40 +1432,6 @@
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('translate-y-20', 'opacity-0');
       }, 3000);
-    }
-
-    function registerPwaServiceWorker() {
-      if ('serviceWorker' in navigator) {
-        const swCode = `
-          self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
-          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-          self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response("Modo Offline Activo"))));
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-      }
-
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPwaPrompt = e;
-        const installBtn = document.getElementById('pwaInstallBtn');
-        if (installBtn) installBtn.classList.remove('hidden');
-      });
-    }
-
-    function promptPwaInstall() {
-      if (deferredPwaPrompt) {
-        deferredPwaPrompt.prompt();
-        deferredPwaPrompt.userChoice.then((choice) => {
-          if (choice.outcome === 'accepted') {
-            showToast('¡Gracias por instalar la aplicación!');
-          }
-          deferredPwaPrompt = null;
-          document.getElementById('pwaInstallBtn').classList.add('hidden');
-        });
-      } else {
-        showToast('Para instalar: usa la opción "Agregar a Pantalla Principal" de tu navegador');
-      }
     }
   </script>
 </body>
